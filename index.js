@@ -30,7 +30,7 @@ const limiter = rateLimit({
   legacyHeaders: false, // Disable the `X-RateLimit-*` headers
 });
 
-app.use(cors({ credentials: true, origin: "http://localhost:2023" }));
+app.use(cors({ credentials: true, origin: "http://localhost:2024" }));
 app.use(express.json());
 app.use(helmet());
 app.use(xss());
