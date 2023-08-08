@@ -59,7 +59,7 @@ const getPosts = async (req, res) => {
     .json({
       success: true,
       data: {
-        data,
+        posts: data,
         limit: limitN,
         page: pageN,
         total_page: totalPages,
@@ -104,13 +104,13 @@ const updatePost = async (req, res) => {
   }
 };
 const getPost = async (req, res) => {
-  const data = await Post.find({ _id: req.params.id }).populate("author", [
+  const data = await Post.findOne({ _id: req.params.id }).populate("author", [
     "username",
   ]);
   res
     .json({
       success: true,
-      data,
+      post: data,
     })
     .status(StatusCodes.OK);
 };

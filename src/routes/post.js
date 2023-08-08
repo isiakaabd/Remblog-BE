@@ -18,7 +18,7 @@ const storage = multer.diskStorage({
     cb(null, file.originalname); // Use a unique filename for each uploaded file
   },
 });
-const upload = multer({ storage: storage });
+const upload = multer({ storage });
 // const upload = multer({ dest: "uploads/" });
 
 router.route("/posts").get(getPosts);

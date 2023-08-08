@@ -30,13 +30,19 @@ const limiter = rateLimit({
   legacyHeaders: false, // Disable the `X-RateLimit-*` headers
 });
 
-app.use(cors({ credentials: true, origin: "http://localhost:2024" }));
+app.use(
+  cors({
+    credentials: true,
+    origin: "http://localhost:2024",
+  })
+);
 app.use(express.json());
 app.use(helmet());
 app.use(xss());
 app.use(limiter);
 app.set("trust proxy", 1);
 app.use("/uploads", express.static(__dirname + "/uploads"));
+
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 //routes
