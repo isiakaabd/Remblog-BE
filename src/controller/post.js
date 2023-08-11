@@ -5,19 +5,19 @@ import jwt from "jsonwebtoken";
 import { UnauthenticatedError } from "../error/unauthenticated.js";
 import { NotFoundError } from "../error/notFound.js";
 const createPost = async (req, res) => {
-  const { title, message, author } = req.body;
-
+  const { title, message } = req.body;
+  const { id } = req.user;
   const params = {
     title,
     image: req.file.path,
     message,
-    author,
+    author: id,
   };
   const requiredParams = ["title", "author", "message"];
   await checkRequiredParams(params, requiredParams);
 
   const data = await Post.create(params);
-  res.json({ data }).status(StatusCodes.CREATED);
+  res.json({ post: data, message: "Post Created" }).status(StatusCodes.CREATED);
 };
 const getPosts = async (req, res) => {
   const { page, limit, author } = req.query;
