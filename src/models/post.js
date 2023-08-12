@@ -18,8 +18,8 @@ const PostSchema = new Schema(
     author: {
       type: Types.ObjectId,
       ref: "user",
-      required: [true, "Please provide user"],
     },
+    likes: [{ type: Types.ObjectId, ref: "user" }],
   },
   { timestamps: true }
 );

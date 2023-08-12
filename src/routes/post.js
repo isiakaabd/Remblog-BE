@@ -5,6 +5,7 @@ import {
   getPost,
   deletePost,
   updatePost,
+  likeAndUnLikePost,
 } from "../controller/post.js";
 import multer from "multer";
 import { authenticationMiddleware } from "../middleware/auth.js";
@@ -30,5 +31,6 @@ router
   .route("/post/:id")
   .get(getPost)
   .delete(authenticationMiddleware, deletePost)
+  .post(authenticationMiddleware, likeAndUnLikePost)
   .patch(authenticationMiddleware, upload.single("image"), updatePost);
 export default router;

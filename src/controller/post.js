@@ -1,5 +1,6 @@
 import { StatusCodes } from "http-status-codes";
 import Post from "../models/post.js";
+import { Types } from "mongoose";
 import { checkRequiredParams } from "../utils/index.js";
 import jwt from "jsonwebtoken";
 import { UnauthenticatedError } from "../error/unauthenticated.js";
@@ -104,9 +105,9 @@ const updatePost = async (req, res) => {
   }
 };
 const getPost = async (req, res) => {
-  const data = await Post.findOne({ _id: req.params.id }).populate("author", [
-    "username",
-  ]);
+  const data = await Post.findOne({ _id: req.params.id })
+    .populate("author", ["username"])
+    .populate("likes", ["username"]);
   res
     .json({
       success: true,
@@ -114,4 +115,43 @@ const getPost = async (req, res) => {
     })
     .status(StatusCodes.OK);
 };
-export { createPost, getPosts, deletePost, updatePost, getPost };
+
+const likeAndUnLikePost = async (req, res) => {
+  const postId = req.params.id;
+  const userId = req.user.id; // Assuming req.user has the user's id
+
+  if (!userId) return new UnauthenticatedError("unauthorized");
+  const post = await Post.findById(postId);
+  if (!post) {
+    return res.status(StatusCodes.NOT_FOUND).json({
+      success: false,
+      message: "Post not found",
+    });
+  }
+
+  const likedIndex = post.likes.findIndex((like) => like.toString() === userId);
+
+  if (likedIndex !== -1) {
+    // Already liked, remove like
+    post.likes.splice(likedIndex, 1);
+  } else {
+    // Not liked, add like
+    post.likes.push(new Types.ObjectId(userId));
+  }
+
+  const updatedPost = await post.save();
+
+  return res.status(StatusCodes.OK).json({
+    success: true,
+    likes: updatedPost.likes.length,
+  });
+};
+
+export {
+  createPost,
+  getPosts,
+  deletePost,
+  updatePost,
+  getPost,
+  likeAndUnLikePost,
+};
