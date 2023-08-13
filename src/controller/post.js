@@ -27,15 +27,10 @@ const getPosts = async (req, res) => {
     ...(author && { author }),
   };
 
-  const { token } = req.cookies;
-  const { id, username } = jwt.verify(token, process.env.JSON_TOKEN);
-  req.user = {
-    id,
-    username,
-  };
+  const { user } = req;
 
-  if (author && username !== author) {
-    queryObject.author = id;
+  if (user?.id && author && user?.username !== author) {
+    queryObject.author = user.id;
   }
 
   const countQuery = Post.find(queryObject);
@@ -48,7 +43,7 @@ const getPosts = async (req, res) => {
 
   let dataQuery = Post.find(queryObject);
 
-  if (username !== author) {
+  if (user?.username !== author) {
     dataQuery = dataQuery
       .populate("author", ["username"])
       .skip(skip)
@@ -57,13 +52,6 @@ const getPosts = async (req, res) => {
   }
 
   const data = await dataQuery;
-
-  // const newData = data.map((item) => {
-  //   return {
-  //     ...item._doc, // Include existing item properties
-  //     canModify: item.author._id.toString() === req.user.id,
-  //   };
-  // });
 
   const totalPages = Math.ceil(totalDocuments / limitN);
   const hasNextPage = pageN < totalPages;
