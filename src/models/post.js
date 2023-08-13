@@ -19,6 +19,10 @@ const PostSchema = new Schema(
       type: Types.ObjectId,
       ref: "user",
     },
+    liked: {
+      type: Boolean,
+      default: false,
+    },
     likes: [{ type: Types.ObjectId, ref: "user" }],
   },
   { timestamps: true }

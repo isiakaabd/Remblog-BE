@@ -16,25 +16,29 @@ const createPost = async (req, res) => {
   };
   const requiredParams = ["title", "author", "message"];
   await checkRequiredParams(params, requiredParams);
+  const data = await Post.create({ ...params });
 
-  const data = await Post.create(params);
   res.json({ post: data, message: "Post Created" }).status(StatusCodes.CREATED);
 };
 const getPosts = async (req, res) => {
   const { page, limit, author } = req.query;
+
   const queryObject = {
     ...(author && { author }),
   };
+
   const { token } = req.cookies;
   const { id, username } = jwt.verify(token, process.env.JSON_TOKEN);
   req.user = {
     id,
     username,
   };
-  queryObject.author = id;
-  // Create a new query object for counting documents
-  const countQuery =
-    username === author ? Post.find({ ...queryObject }) : Post.find();
+
+  if (author && username !== author) {
+    queryObject.author = id;
+  }
+
+  const countQuery = Post.find(queryObject);
 
   const totalDocuments = await countQuery.countDocuments();
 
@@ -42,39 +46,50 @@ const getPosts = async (req, res) => {
   const limitN = Number(limit) || 10;
   const skip = (pageN - 1) * limitN;
 
-  // Fetch data for the current page using skip and limit
-  const data = await Post.find(queryObject)
-    .populate("author", ["username"])
-    .skip(skip)
-    .limit(limitN)
-    .sort({ createdAt: -1 });
+  let dataQuery = Post.find(queryObject);
 
-  // Calculate the total number of pages
+  if (username !== author) {
+    dataQuery = dataQuery
+      .populate("author", ["username"])
+      .skip(skip)
+      .limit(limitN)
+      .sort({ createdAt: -1 });
+  }
+
+  const data = await dataQuery;
+
+  // const newData = data.map((item) => {
+  //   return {
+  //     ...item._doc, // Include existing item properties
+  //     canModify: item.author._id.toString() === req.user.id,
+  //   };
+  // });
+
   const totalPages = Math.ceil(totalDocuments / limitN);
-
-  // Determine if there is a next page and a previous page
   const hasNextPage = pageN < totalPages;
   const hasPreviousPage = pageN > 1;
 
-  res
-    .json({
-      success: true,
-      data: {
-        posts: data,
-        limit: limitN,
-        page: pageN,
-        total_page: totalPages,
-        hasNextPage,
-        hasPreviousPage,
-      },
-    })
-    .status(StatusCodes.OK);
+  res.status(StatusCodes.OK).json({
+    success: true,
+    data: {
+      posts: data,
+      limit: limitN,
+      page: pageN,
+      total_page: totalPages,
+      hasNextPage,
+      hasPreviousPage,
+    },
+  });
 };
+
 const deletePost = async (req, res) => {
   const { id } = req.params;
   const { user } = req;
   if (!user) throw new UnauthenticatedError("Unauthorized Request");
-
+  const post = await Post.findById(id);
+  if (req.user.id !== post.author._id) {
+    throw new UnauthenticatedError("Unauthorized Request");
+  }
   const data = await Post.findOneAndDelete({ _id: id }, { new: true });
   if (!data) throw new NotFoundError("Post not found");
   else {
@@ -96,7 +111,10 @@ const updatePost = async (req, res) => {
   };
   const requiredParams = ["title", "author", "message"];
   await checkRequiredParams(params, requiredParams);
-
+  const post = await Post.findById(id);
+  if (req.user.id !== post.author._id) {
+    throw new UnauthenticatedError("Unauthorized Request");
+  }
   const data = await Post.findOneAndUpdate({ _id: id }, params, { new: true });
 
   if (!data) throw new NotFoundError("Post not found");
@@ -105,13 +123,22 @@ const updatePost = async (req, res) => {
   }
 };
 const getPost = async (req, res) => {
-  const data = await Post.findOne({ _id: req.params.id })
+  const params = req.params.id;
+  const data = await Post.findOne({ _id: params })
     .populate("author", ["username"])
     .populate("likes", ["username"]);
+
+  const newData = {
+    ...data._doc, // Include existing item properties
+    canModify: !req.user
+      ? false
+      : data._doc.author._id.toString() === req.user.id,
+  };
+
   res
     .json({
       success: true,
-      post: data,
+      post: newData,
     })
     .status(StatusCodes.OK);
 };
@@ -130,20 +157,25 @@ const likeAndUnLikePost = async (req, res) => {
   }
 
   const likedIndex = post.likes.findIndex((like) => like.toString() === userId);
+  post.liked = false;
+  let status = 0; // Default status: Not liked
 
   if (likedIndex !== -1) {
     // Already liked, remove like
     post.likes.splice(likedIndex, 1);
   } else {
+    status = 1; // Liked status
     // Not liked, add like
+    post.liked = true;
     post.likes.push(new Types.ObjectId(userId));
   }
 
   const updatedPost = await post.save();
 
   return res.status(StatusCodes.OK).json({
-    success: true,
+    success: status === 1 ? "Post liked" : "Post disliked",
     likes: updatedPost.likes.length,
+    status: status,
   });
 };
 
