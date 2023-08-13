@@ -1,4 +1,5 @@
 import "express-async-errors";
+import { createProxyMiddleware } from "http-proxy-middleware";
 import express from "express";
 import cors from "cors";
 import Auth from "./src/routes/auth.js";
@@ -36,6 +37,16 @@ app.use(
     origin: ["http://localhost:2024", "https://remblog.netlify.app"],
   })
 );
+
+app.use(
+  "/uploads",
+  createProxyMiddleware({
+    target: "http://localhost:2023", // Replace with your server's URL
+    changeOrigin: true,
+    limit: "10mb",
+  })
+);
+
 app.use(express.json());
 app.use(helmet());
 app.use(xss());

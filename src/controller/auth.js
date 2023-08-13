@@ -31,12 +31,11 @@ const register = async (req, res) => {
   const { password, username } = req.body;
   const params = {
     username,
-
     password,
   };
   const requiredParams = ["username", "password"];
   await checkRequiredParams(params, requiredParams);
-  const user = await User.create({ username, password });
+  await User.create(params);
   res
     .status(StatusCodes.CREATED)
     .json({ success: true, message: "User successfully created" });

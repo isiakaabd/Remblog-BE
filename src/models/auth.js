@@ -16,19 +16,18 @@ const UserSchema = new Schema({
   },
   address: {
     type: String,
-    unique: true,
   },
   email: {
     type: String,
-    unique: true,
-    validate: {
-      validator: function (value) {
-        // Custom email validation logic
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        return emailRegex.test(value);
-      },
-      message: "Invalid email address",
-    },
+    unique: false,
+    // validate: {
+    //   validator: function (value) {
+    //     // Custom email validation logic
+    //     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    //     return emailRegex.test(value);
+    //   },
+    //   message: "Invalid email address",
+    // },
   },
   password: {
     type: String,
