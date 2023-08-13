@@ -33,7 +33,7 @@ const limiter = rateLimit({
 app.use(
   cors({
     credentials: true,
-    origin: "http://localhost:2024",
+    origin: ["http://localhost:2024", "https://remblog.netlify.app"],
   })
 );
 app.use(express.json());
