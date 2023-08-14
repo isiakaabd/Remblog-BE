@@ -44,6 +44,16 @@ app.use(
     target: "http://localhost:2023", // Replace with your server's URL
     changeOrigin: true,
     limit: "10mb",
+    credentials: true,
+  })
+);
+app.use(
+  "/uploads",
+  createProxyMiddleware({
+    target: "https://remblog.onrender.com", // Replace with your server's URL
+    changeOrigin: true,
+    limit: "10mb",
+    credentials: true,
   })
 );
 
