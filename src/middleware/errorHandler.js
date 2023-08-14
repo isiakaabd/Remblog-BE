@@ -17,7 +17,9 @@ const errorHandler = (err, req, res, next) => {
       (customError.statusCode = 404);
   }
   if (err?.code === 11000) {
-    customError.message = `Duplicate value entered for ${err.keyValue} field, please enter a valid value`;
+    customError.message = `Duplicate value entered for ${Object.keys(
+      err.keyValue
+    )} field, please enter a valid value`;
     customError.statusCode = 400;
   }
   return res
