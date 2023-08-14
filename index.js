@@ -15,7 +15,7 @@ import cookieParser from "cookie-parser";
 import { authenticationMiddleware } from "./src/middleware/auth.js";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
-
+import fs from "fs";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
@@ -38,29 +38,33 @@ app.use(
   })
 );
 
-app.use(
-  "/uploads",
-  createProxyMiddleware({
-    target: "http://localhost:2023", // Replace with your server's URL
-    changeOrigin: true,
-    limit: "10mb",
-    credentials: true,
-  })
-);
-app.use(
-  "/uploads",
-  createProxyMiddleware({
-    target: "https://remblog.onrender.com", // Replace with your server's URL
-    changeOrigin: true,
-    limit: "10mb",
-    credentials: true,
-  })
-);
+// app.use(
+//   "/uploads",
+//   createProxyMiddleware({
+//     target: "http://localhost:2023", // Replace with your server's URL
+//     changeOrigin: true,
+//     limit: "10mb",
+//     credentials: true,
+//   })
+// );
+// app.use(
+//   "/uploads",
+//   createProxyMiddleware({
+//     target: "https://remblog.onrender.com", // Replace with your server's URL
+//     changeOrigin: true,
+//     limit: "10mb",
+//     credentials: true,
+//   })
+// );
 
 app.use(express.json());
 app.use(helmet());
 app.use(xss());
 app.use(limiter);
+// app.use("/uploads", (req, res, next) => {
+//   res.setHeader("Cross-Origin-Resource-Policy", "cross-origin"); // Or 'same-origin' or 'same-site'
+//   next();
+// });
 app.set("trust proxy", 1);
 app.use("/uploads", express.static(__dirname + "/uploads"));
 
