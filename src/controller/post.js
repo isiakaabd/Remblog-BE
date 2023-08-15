@@ -116,15 +116,18 @@ const updatePost = async (req, res) => {
 };
 const getPost = async (req, res) => {
   const params = req.params.id;
-
-  const { id } = jwt.verify(req.cookies.token, process.env.JSON_TOKEN);
+  let userId = null;
+  if (req.cookies.token) {
+    const { id } = jwt.verify(req.cookies.token, process.env.JSON_TOKEN);
+    userId = id;
+  }
   const data = await Post.findOne({ _id: params })
     .populate("author", ["username"])
     .populate("likes", ["username"]);
 
   const newData = {
     ...data._doc, // Include existing item properties
-    canModify: !id ? false : data._doc.author._id.toString() === id,
+    canModify: !userId ? false : data._doc.author._id.toString() === userId,
   };
 
   res
