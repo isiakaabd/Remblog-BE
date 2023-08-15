@@ -1,20 +1,21 @@
 import { StatusCodes } from "http-status-codes";
 import Post from "../models/post.js";
 import { Types } from "mongoose";
-import { checkRequiredParams } from "../utils/index.js";
 import jwt from "jsonwebtoken";
+import { checkRequiredParams } from "../utils/index.js";
 import { UnauthenticatedError } from "../error/unauthenticated.js";
 import { NotFoundError } from "../error/notFound.js";
 const createPost = async (req, res) => {
-  const { title, message } = req.body;
+  const { title, message, category } = req.body;
   const { id } = req.user;
   const params = {
     title,
     image: req.file.path,
     message,
     author: id,
+    category,
   };
-  const requiredParams = ["title", "author", "message"];
+  const requiredParams = ["title", "author", "category", "message"];
   await checkRequiredParams(params, requiredParams);
   const data = await Post.create({ ...params });
 
@@ -89,38 +90,41 @@ const deletePost = async (req, res) => {
 const updatePost = async (req, res) => {
   const { id } = req.params;
   const { user } = req;
-  const { title, message, author } = req.body;
+  const { title, message, category } = req.body;
   if (!user) throw new UnauthenticatedError("Unauthorized Request");
   const params = {
     title,
     image: req.file.path,
     message,
-    author,
+    author: req.user.id,
+    category,
   };
   const requiredParams = ["title", "author", "message"];
   await checkRequiredParams(params, requiredParams);
   const post = await Post.findById(id);
-  if (req.user.id !== post.author._id) {
+  if (req.user.id !== post.author._id.toString()) {
     throw new UnauthenticatedError("Unauthorized Request");
   }
   const data = await Post.findOneAndUpdate({ _id: id }, params, { new: true });
 
   if (!data) throw new NotFoundError("Post not found");
   else {
-    res.json({ success: true, data }).status(StatusCodes.OK);
+    res
+      .json({ success: true, data, message: "Post Updated!" })
+      .status(StatusCodes.OK);
   }
 };
 const getPost = async (req, res) => {
   const params = req.params.id;
+
+  const { id } = jwt.verify(req.cookies.token, process.env.JSON_TOKEN);
   const data = await Post.findOne({ _id: params })
     .populate("author", ["username"])
     .populate("likes", ["username"]);
 
   const newData = {
     ...data._doc, // Include existing item properties
-    canModify: !req.user
-      ? false
-      : data._doc.author._id.toString() === req.user.id,
+    canModify: !id ? false : data._doc.author._id.toString() === id,
   };
 
   res

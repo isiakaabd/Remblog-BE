@@ -31,6 +31,9 @@ router
   .route("/post/:id")
   .get(getPost)
   .delete(authenticationMiddleware, deletePost)
-  .post(authenticationMiddleware, likeAndUnLikePost)
+  .post(authenticationMiddleware, likeAndUnLikePost);
+
+router
+  .route("/post/:id/update")
   .patch(authenticationMiddleware, upload.single("image"), updatePost);
 export default router;

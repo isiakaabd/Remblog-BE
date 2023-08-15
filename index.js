@@ -1,5 +1,4 @@
 import "express-async-errors";
-import { createProxyMiddleware } from "http-proxy-middleware";
 import express from "express";
 import cors from "cors";
 import Auth from "./src/routes/auth.js";
@@ -15,7 +14,6 @@ import cookieParser from "cookie-parser";
 import { authenticationMiddleware } from "./src/middleware/auth.js";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
-import fs from "fs";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
@@ -34,28 +32,10 @@ const limiter = rateLimit({
 app.use(
   cors({
     credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
     origin: ["http://localhost:2024", "https://remblog.netlify.app"],
   })
 );
-
-// app.use(
-//   "/uploads",
-//   createProxyMiddleware({
-//     target: "http://localhost:2023", // Replace with your server's URL
-//     changeOrigin: true,
-//     limit: "10mb",
-//     credentials: true,
-//   })
-// );
-// app.use(
-//   "/uploads",
-//   createProxyMiddleware({
-//     target: "https://remblog.onrender.com", // Replace with your server's URL
-//     changeOrigin: true,
-//     limit: "10mb",
-//     credentials: true,
-//   })
-// );
 
 app.use(express.json());
 app.use(helmet());
