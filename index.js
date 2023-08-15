@@ -61,10 +61,7 @@ app.use(express.json());
 app.use(helmet());
 app.use(xss());
 app.use(limiter);
-// app.use("/uploads", (req, res, next) => {
-//   res.setHeader("Cross-Origin-Resource-Policy", "cross-origin"); // Or 'same-origin' or 'same-site'
-//   next();
-// });
+
 app.set("trust proxy", 1);
 app.use("/uploads", express.static(__dirname + "/uploads"));
 

@@ -5,11 +5,25 @@ const PostSchema = new Schema(
     title: {
       type: String,
       minLength: [5, "Enter atleast 5 characters"],
-      maxLength: 50,
+      maxLength: 100,
     },
     message: {
       type: String,
       required: true,
+    },
+    category: {
+      type: String,
+      enum: [
+        "sport",
+        "news",
+        "entertainment",
+        "service",
+        "love",
+        "romantic",
+        "tech",
+      ],
+      required: true,
+      default: "news",
     },
 
     image: {
