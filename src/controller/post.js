@@ -114,6 +114,7 @@ const updatePost = async (req, res) => {
       .status(StatusCodes.OK);
   }
 };
+
 const getPost = async (req, res) => {
   const params = req.params.id;
   let userId = null;
@@ -129,7 +130,30 @@ const getPost = async (req, res) => {
     ...data._doc, // Include existing item properties
     canModify: !userId ? false : data._doc.author._id.toString() === userId,
   };
-
+  // let text = "Hello";
+  // let metaTags = `
+  //     <title>${data.title}</title>
+  //     <meta name="description" content="${text}" />
+  //     <meta property="og:type" content="website" />
+  //     <meta property="og:url" content="${req.url}" />
+  //     <meta property="og:title" content="${data.title}" />
+  //     <meta property="og:description" content="${text}" />
+  //     <meta property="og:image" content="${process.env.PORT + data.image}" />
+  //     <meta name="twitter:creator" content=${data.author?.username}" />
+  //     <meta name="twitter:card" content="website" />
+  //     <meta name="twitter:title" content="${data.title}" />
+  //     <meta name="twitter:description" content="${text}" />
+  //     <meta name="twitter:image" content="${process.env.PORT + data.image}" />\
+  //     <link rel="icon" href="${process.env.PORT + data.image}" />
+  //     <link
+  //       rel="icon"
+  //       type="image/png"
+  //       sizes="32x32"
+  //       href="${process.env.PORT + data.image}"
+  //     /></head>`;
+  // // splitted[1] = metaTags;
+  // // let responseHtml = splitted.join("");
+  // res.setHeader(metaTags);
   res
     .json({
       success: true,

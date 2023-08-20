@@ -33,7 +33,7 @@ app.use(
   cors({
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
-    origin: ["http://localhost:2024", "https://remblog.netlify.app"],
+    origin: [process.env.LOCALHOST, process.env.NETLIFY],
   })
 );
 
@@ -43,6 +43,10 @@ app.use(xss());
 app.use(limiter);
 
 app.set("trust proxy", 1);
+app.use("/uploads", (_, res, next) => {
+  res.set("Cross-Origin-Resource-Policy", "cross-origin");
+  next();
+});
 app.use("/uploads", express.static(__dirname + "/uploads"));
 
 app.use(express.urlencoded({ extended: false }));
