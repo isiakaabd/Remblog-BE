@@ -4,6 +4,7 @@ import cors from "cors";
 import Auth from "./src/routes/auth.js";
 import User from "./src/routes/user.js";
 import Post from "./src/routes/post.js";
+import Comment from "./src/routes/comment.js";
 import dotenv from "dotenv";
 import helmet from "helmet";
 import xss from "xss-clean";
@@ -55,6 +56,7 @@ app.use(cookieParser());
 app.use("/api/v1", Auth);
 app.use("/api/v1", Post);
 app.use("/api/v1", authenticationMiddleware, User);
+app.use("/api/v1", authenticationMiddleware, Comment);
 
 //error handling
 app.use(errorHandlerMiddleWare);

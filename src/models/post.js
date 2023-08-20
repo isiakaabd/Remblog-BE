@@ -31,13 +31,13 @@ const PostSchema = new Schema(
     },
     author: {
       type: Types.ObjectId,
-      ref: "user",
+      ref: "User",
     },
     liked: {
       type: Boolean,
       default: false,
     },
-    likes: [{ type: Types.ObjectId, ref: "user" }],
+    likes: [{ type: Types.ObjectId, ref: "User" }],
   },
   { timestamps: true }
 );

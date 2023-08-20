@@ -54,6 +54,6 @@ UserSchema.methods.generateToken = async function () {
 UserSchema.methods.comparePassword = async function (userPassword) {
   return await bcrypt.compare(userPassword, this.password);
 };
-const UserModel = model("user", UserSchema);
+const UserModel = model("User", UserSchema);
 
 export default UserModel;
