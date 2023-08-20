@@ -1,6 +1,8 @@
 import { StatusCodes } from "http-status-codes";
 import Comment from "../models/comment.js";
 import { checkRequiredParams } from "../utils/index.js";
+import jwt from "jsonwebtoken";
+import { UnauthenticatedError, NotFoundError } from "../error/index.js";
 const createComment = async (req, res) => {
   const { postId, message, parentId } = req.body;
   const { id } = req.user;
@@ -35,6 +37,10 @@ const getComments = async (req, res) => {
 
   dataQuery = dataQuery
     .populate("sender", ["username"])
+    .populate({
+      path: "responses",
+      populate: { path: "sender", select: "username" },
+    })
     .skip(skip)
     .limit(limitN)
     .sort({ createdAt: -1 });
@@ -56,96 +62,71 @@ const getComments = async (req, res) => {
   });
 };
 
-// const deletePost = async (req, res) => {
-//   const { id } = req.params;
-//   const { user } = req;
-//   if (!user) throw new UnauthenticatedError("Unauthorized Request");
-//   const post = await Post.findById(id);
-//   if (req.user.id !== post.author._id) {
-//     throw new UnauthenticatedError("Unauthorized Request");
-//   }
-//   const data = await Post.findOneAndDelete({ _id: id }, { new: true });
-//   if (!data) throw new NotFoundError("Post not found");
-//   else {
-//     res
-//       .json({ success: true, data: "Post deleted successfully" })
-//       .status(StatusCodes.OK);
-//   }
-// };
-// const updatePost = async (req, res) => {
-//   const { id } = req.params;
-//   const { user } = req;
-//   const { title, message, category } = req.body;
-//   if (!user) throw new UnauthenticatedError("Unauthorized Request");
-//   const params = {
-//     title,
-//     image: req.file.path,
-//     message,
-//     author: req.user.id,
-//     category,
-//   };
-//   const requiredParams = ["title", "author", "message"];
-//   await checkRequiredParams(params, requiredParams);
-//   const post = await Post.findById(id);
-//   if (req.user.id !== post.author._id.toString()) {
-//     throw new UnauthenticatedError("Unauthorized Request");
-//   }
-//   const data = await Post.findOneAndUpdate({ _id: id }, params, { new: true });
+const deleteComment = async (req, res) => {
+  const { id } = req.params;
+  const comment = await Comment.findById(id);
+  if (!comment) throw new NotFoundError("Comment not found");
+  if (req.user.id !== comment.sender.toString()) {
+    throw new UnauthenticatedError("Unauthorized Request");
+  }
+  await Comment.findOneAndDelete({ _id: id }, { new: true });
 
-//   if (!data) throw new NotFoundError("Post not found");
-//   else {
-//     res
-//       .json({ success: true, data, message: "Post Updated!" })
-//       .status(StatusCodes.OK);
-//   }
-// };
+  res
+    .json({ success: true, message: "Comment deleted successfully" })
+    .status(StatusCodes.OK);
+};
+const updateComment = async (req, res) => {
+  const { id } = req.params;
+  const { message, postId, parentId } = req.body;
+  const params = {
+    message,
+    postId,
+    ...(parentId && { parentId }),
+    sender: req.user.id,
+  };
+  const requiredParams = ["postId", "sender", "message"];
+  await checkRequiredParams(params, requiredParams);
+  const post = await Comment.findById(id);
 
-// const getPost = async (req, res) => {
-//   const params = req.params.id;
-//   let userId = null;
-//   if (req.cookies.token) {
-//     const { id } = jwt.verify(req.cookies.token, process.env.JSON_TOKEN);
-//     userId = id;
-//   }
-//   const data = await Post.findOne({ _id: params })
-//     .populate("author", ["username"])
-//     .populate("likes", ["username"]);
+  if (req.user.id !== post.sender._id.toString()) {
+    throw new UnauthenticatedError("Unauthorized Request");
+  }
+  const data = await Comment.findOneAndUpdate({ _id: id }, params, {
+    new: true,
+  });
 
-//   const newData = {
-//     ...data._doc, // Include existing item properties
-//     canModify: !userId ? false : data._doc.author._id.toString() === userId,
-//   };
-//   // let text = "Hello";
-//   // let metaTags = `
-//   //     <title>${data.title}</title>
-//   //     <meta name="description" content="${text}" />
-//   //     <meta property="og:type" content="website" />
-//   //     <meta property="og:url" content="${req.url}" />
-//   //     <meta property="og:title" content="${data.title}" />
-//   //     <meta property="og:description" content="${text}" />
-//   //     <meta property="og:image" content="${process.env.PORT + data.image}" />
-//   //     <meta name="twitter:creator" content=${data.author?.username}" />
-//   //     <meta name="twitter:card" content="website" />
-//   //     <meta name="twitter:title" content="${data.title}" />
-//   //     <meta name="twitter:description" content="${text}" />
-//   //     <meta name="twitter:image" content="${process.env.PORT + data.image}" />\
-//   //     <link rel="icon" href="${process.env.PORT + data.image}" />
-//   //     <link
-//   //       rel="icon"
-//   //       type="image/png"
-//   //       sizes="32x32"
-//   //       href="${process.env.PORT + data.image}"
-//   //     /></head>`;
-//   // // splitted[1] = metaTags;
-//   // // let responseHtml = splitted.join("");
-//   // res.setHeader(metaTags);
-//   res
-//     .json({
-//       success: true,
-//       post: newData,
-//     })
-//     .status(StatusCodes.OK);
-// };
+  if (!data) throw new NotFoundError("Comment not found");
+  else {
+    res
+      .json({ success: true, data, message: "Comment Updated!" })
+      .status(StatusCodes.OK);
+  }
+};
+
+const getComment = async (req, res) => {
+  const params = req.params.commentId;
+
+  let userId = null;
+  if (req.cookies.token) {
+    const { id } = jwt.verify(req.cookies.token, process.env.JSON_TOKEN);
+    userId = id;
+  }
+  const data = await Comment.findOne({ _id: params }).populate("sender", [
+    "username",
+  ]);
+
+  const newData = {
+    ...data._doc, // Include existing item properties
+    canModify: !userId ? false : data._doc.sender._id.toString() === userId,
+  };
+
+  res
+    .json({
+      success: true,
+      comment: newData,
+    })
+    .status(StatusCodes.OK);
+};
 
 // const likeAndUnLikePost = async (req, res) => {
 //   const postId = req.params.id;
@@ -183,4 +164,4 @@ const getComments = async (req, res) => {
 //   });
 // };
 
-export { createComment, getComments };
+export { createComment, updateComment, getComments, getComment, deleteComment };

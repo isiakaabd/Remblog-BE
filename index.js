@@ -55,8 +55,8 @@ app.use(cookieParser());
 //routes
 app.use("/api/v1", Auth);
 app.use("/api/v1", Post);
+app.use("/api/v1", Comment);
 app.use("/api/v1", authenticationMiddleware, User);
-app.use("/api/v1", authenticationMiddleware, Comment);
 
 //error handling
 app.use(errorHandlerMiddleWare);

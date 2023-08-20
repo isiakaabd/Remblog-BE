@@ -54,6 +54,16 @@ const CommentSchema = new Schema(
   },
   { timestamps: true }
 );
+// Virtual to define responses as a sub-array
+CommentSchema.virtual("responses", {
+  ref: "comment", // The model to use
+  localField: "_id", // Find comments where `localField`
+  foreignField: "parentId", // is equal to `foreignField`
+});
+
+// Apply the virtual to the schema
+CommentSchema.set("toObject", { virtuals: true });
+CommentSchema.set("toJSON", { virtuals: true });
 
 const CommentModel = model("comment", CommentSchema);
 
