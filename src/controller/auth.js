@@ -3,6 +3,9 @@ import User from "../models/auth.js";
 import { checkRequiredParams } from "../utils/index.js";
 import { UnauthenticatedError } from "../error/unauthenticated.js";
 
+import { checkUserExists } from "../middleware/checkUser.js";
+import { sendNewEmail } from "../queues/email.queue.js";
+
 const login = async (req, res) => {
   const { username, password } = req.body;
   const params = {
@@ -28,17 +31,29 @@ const login = async (req, res) => {
     .json({ success: true, user: { username: user.username } });
 };
 const register = async (req, res) => {
-  const { password, username } = req.body;
+  const { password, username, email } = req.body;
   const params = {
     username,
     password,
+    email,
   };
-  const requiredParams = ["username", "password"];
+  const requiredParams = ["username", "password", "email"];
   await checkRequiredParams(params, requiredParams);
-  await User.create(params);
-  res
-    .status(StatusCodes.CREATED)
-    .json({ success: true, message: "User successfully created" });
+
+  const val = await checkUserExists(email, username);
+
+  if (val) {
+    const data = {
+      recipient: email,
+      username,
+    };
+    await sendNewEmail(data);
+    await User.create(params);
+
+    res
+      .status(StatusCodes.CREATED)
+      .json({ success: true, message: "User successfully created" });
+  }
 };
 const logout = async (_, res) => {
   await res

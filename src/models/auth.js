@@ -9,6 +9,7 @@ const UserSchema = new Schema({
   },
   username: {
     type: String,
+    trim: true,
     unique: true,
     required: [true, "Enter your Username"],
     minLength: [5, "Enter atleast 5 characters"],
@@ -19,15 +20,15 @@ const UserSchema = new Schema({
   },
   email: {
     type: String,
-    unique: false,
-    // validate: {
-    //   validator: function (value) {
-    //     // Custom email validation logic
-    //     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    //     return emailRegex.test(value);
-    //   },
-    //   message: "Invalid email address",
-    // },
+    unique: true,
+    validate: {
+      validator: function (value) {
+        // Custom email validation logic
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return emailRegex.test(value);
+      },
+      message: "Invalid email address",
+    },
   },
   password: {
     type: String,
