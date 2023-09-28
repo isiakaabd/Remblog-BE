@@ -15,26 +15,31 @@ import cookieParser from "cookie-parser";
 import { authenticationMiddleware } from "./src/middleware/auth.js";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
-import { createBullBoard } from "@bull-board/api";
-import { BullMQAdapter } from "@bull-board/api/bullMQAdapter.js";
-import { ExpressAdapter } from "@bull-board/express";
-import { emailQueue } from "./src/queues/email.queue.js";
-import { postQueue } from "./src/queues/post.queue.js";
+// import { createBullBoard } from "@bull-board/api";
+// import { BullMQAdapter } from "@bull-board/api/bullMQAdapter.js";
+// import { ExpressAdapter } from "@bull-board/express";
+// import { emailQueue } from "./src/queues/email.queue.js";
+// import Redis from "redis";
+import { Redis } from "ioredis";
+const redis = new Redis();
+// const client = Redis.createClient();
+// client.setEx("love", "e you ade");
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 dotenv.config();
+// Check if the Redis client is ready before using it
 
 const app = express();
 const port = process.env.PORT || 2023;
 
-const serverAdapter = new ExpressAdapter();
-serverAdapter.setBasePath("/ui");
+// const serverAdapter = new ExpressAdapter();
+// serverAdapter.setBasePath("/ui");
 
-createBullBoard({
-  queues: [new BullMQAdapter(emailQueue), new BullMQAdapter(postQueue)],
-  serverAdapter,
-});
+// createBullBoard({
+//   queues: [new BullMQAdapter(emailQueue)],
+//   serverAdapter,
+// });
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 100, // Limit each IP to 100 requests per `window` (here, per 15 minutes)
@@ -56,7 +61,7 @@ app.use(xss());
 app.use(limiter);
 
 app.set("trust proxy", 1);
-app.use("/ui", serverAdapter.getRouter());
+// app.use("/ui", serverAdapter.getRouter());
 
 app.use("/uploads", (_, res, next) => {
   res.set("Cross-Origin-Resource-Policy", "cross-origin");
@@ -89,4 +94,5 @@ const start = async () => {
   }
 };
 //
+export { redis };
 start();

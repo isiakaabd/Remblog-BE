@@ -30,8 +30,13 @@ const PostSchema = new Schema(
       type: String,
     },
     author: {
-      type: Types.ObjectId,
-      ref: "User",
+      _id: {
+        type: Types.ObjectId,
+        ref: "User",
+      },
+      username: {
+        type: String,
+      },
     },
     liked: {
       type: Boolean,
