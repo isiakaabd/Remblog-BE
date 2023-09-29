@@ -21,7 +21,16 @@ import { dirname } from "path";
 // import { emailQueue } from "./src/queues/email.queue.js";
 // import Redis from "redis";
 import { Redis } from "ioredis";
-const redis = new Redis();
+const redis = new Redis({
+  username: process.env.REDIS_USERNAME, // use your Redis user. More info https://redis.io/docs/management/security/acl/
+  password: process.env.REDIS_USERNAME, // use your password here
+  socket: {
+    host: "my-redis.cloud.redislabs.com",
+    port: 6379,
+    rejectUnauthorized: false,
+    tls: true,
+  },
+});
 // const client = Redis.createClient();
 // client.setEx("love", "e you ade");
 const __filename = fileURLToPath(import.meta.url);
